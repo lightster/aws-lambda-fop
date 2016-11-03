@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<projects>
+  <project>
+    <name>hodor</name>
+    <description>
+      A worker queue that is evolving into a job queue.
+    </description>
+  </project>
+  <project>
+    <name>upcrypto</name>
+    <description>
+      Streamline runtime upgrade of cryptography.
+    </description>
+  </project>
+  <project>
+    <name>named-sprintf</name>
+    <description>
+      Streamline runtime upgrade of cryptography.
+    </description>
+  </project>
+  <project>
+    <name>dnsmasq-mgmt</name>
+    <description>
+      Tool for managing `address` entries in dnsmasq.
+    </description>
+  </project>
+</projects>
