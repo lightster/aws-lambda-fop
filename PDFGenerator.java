@@ -1,3 +1,11 @@
+import com.amazonaws.AmazonClientException;
+import com.amazonaws.auth.AWSCredentials;
+import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.services.s3.AmazonS3;
+import com.amazonaws.services.s3.AmazonS3Client;
+import com.amazonaws.services.s3.AmazonS3URI;
+import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.S3Object;
 import java.io.BufferedOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
@@ -23,7 +31,8 @@ public class PDFGenerator
         }
 
         try {
-            generatePdf(args[0], args[1], args[2]);
+            generatePdfUsingS3(args[0], args[1], args[2]);
+            // generatePdf(args[0], args[1], args[2]);
         } catch (Exception exception) {
             exception.printStackTrace(System.err);
             System.exit(-1);
@@ -42,6 +51,17 @@ public class PDFGenerator
         File xsltFile = new File(xsltPath);
         File outputFile = new File(outputPath);
 
+        generatePdf(dataFile, xsltFile, outputFile);
+    }
+
+    /**
+     * @param File dataFile
+     * @param File xsltFile
+     * @param File outputFile
+     */
+    public static void generatePdf(File dataFile, File xsltFile, File outputFile)
+        throws Exception
+    {
         FopFactory fopFactory = FopFactory.newInstance(new File(".").toURI());
         FOUserAgent foUserAgent = fopFactory.newFOUserAgent();
 
@@ -62,5 +82,46 @@ public class PDFGenerator
         } finally {
             outputBuffer.close();
         }
+    }
+
+    public static void generatePdfUsingS3(String dataPath, String xsltPath, String outputPath)
+        throws Exception
+    {
+        AmazonS3URI dataUri = new AmazonS3URI(dataPath);
+        AmazonS3URI xsltUri = new AmazonS3URI(xsltPath);
+        AmazonS3URI outputUri = new AmazonS3URI(outputPath);
+
+        File dataFile = new File("/tmp/data.xml");
+        File xsltFile = new File("/tmp/style.xslt");
+        File outputFile = new File("/tmp/output.pdf");
+
+        AWSCredentials credentials = null;
+        try {
+            credentials = new ProfileCredentialsProvider().getCredentials();
+        } catch (Exception exception) {
+            throw new AmazonClientException(
+                "Cannot load the credentials from the credential profiles file. "
+                + "Please make sure that your credentials file is at the correct "
+                + "location (~/.aws/credentials), and is in valid format.",
+                exception
+            );
+        }
+
+        AmazonS3 s3 = new AmazonS3Client(credentials);
+        // Region usWest2 = Region.getRegion(Regions.US_WEST_2);
+        // s3.setRegion(usWest2);
+
+        s3.getObject(
+            new GetObjectRequest(dataUri.getBucket(), dataUri.getKey()),
+            dataFile
+        );
+        s3.getObject(
+            new GetObjectRequest(xsltUri.getBucket(), xsltUri.getKey()),
+            xsltFile
+        );
+
+        generatePdf(dataFile, xsltFile, outputFile);
+
+        s3.putObject(outputUri.getBucket(), outputUri.getKey(), outputFile);
     }
 }
