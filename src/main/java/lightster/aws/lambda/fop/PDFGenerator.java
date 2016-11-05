@@ -3,6 +3,8 @@ package lightster.aws.lambda.fop;
 import com.amazonaws.AmazonClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.profile.ProfileCredentialsProvider;
+import com.amazonaws.services.lambda.runtime.Context;
+import com.amazonaws.services.lambda.runtime.RequestHandler;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3Client;
 import com.amazonaws.services.s3.AmazonS3URI;
@@ -23,7 +25,7 @@ import org.apache.fop.apps.FopFactory;
 import org.apache.fop.apps.FOUserAgent;
 import org.apache.fop.apps.MimeConstants;
 
-public class PDFGenerator
+public class PDFGenerator implements RequestHandler<LambdaRequest, LambdaResponse>
 {
     public static void main(String[] args)
     {
@@ -125,5 +127,32 @@ public class PDFGenerator
         generatePdf(dataFile, xsltFile, outputFile);
 
         s3.putObject(outputUri.getBucket(), outputUri.getKey(), outputFile);
+    }
+
+    /**
+     * @param LambdaRequest request
+     * @param Context context
+     * @return LambdaResponse
+     */
+    public LambdaResponse handleRequest(LambdaRequest request, Context context)
+    {
+        LambdaResponse response = new LambdaResponse();
+
+        try {
+            generatePdfUsingS3(
+                request.getDataUrl(),
+                request.getXsltUrl(),
+                request.getOutputUrl()
+            );
+
+            response.setOutputUrl(request.getOutputUrl());
+        } catch (Exception exception) {
+            response.setErrorMessage(exception.getMessage());
+            response.setHasError(true);
+
+            exception.printStackTrace(System.err);
+        }
+
+        return response;
     }
 }
