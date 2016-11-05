@@ -1,0 +1,33 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+mainClassName = "lightster.aws.lambda.fop.PDFGenerator"
+
+run {
+    if ( project.hasProperty("args") ) {
+        args(args.split(' '))
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile (
+        'org.apache.xmlgraphics:fop:2.1',
+        'com.amazonaws:aws-java-sdk-dms:1.11.52',
+        'com.amazonaws:aws-lambda-java-core:1.1.0',
+        'com.amazonaws:aws-lambda-java-events:1.1.0'
+    )
+}
+
+task buildZip(type: Zip) {
+    from compileJava
+    from processResources
+    into('lib') {
+        from configurations.runtime
+    }
+}
+
+build.dependsOn buildZip
