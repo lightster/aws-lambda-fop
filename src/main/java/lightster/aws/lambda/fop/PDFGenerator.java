@@ -99,21 +99,12 @@ public class PDFGenerator implements RequestHandler<LambdaRequest, LambdaRespons
         File xsltFile = new File("/tmp/style.xslt");
         File outputFile = new File("/tmp/output.pdf");
 
-        AWSCredentials credentials = null;
+        AmazonS3 s3;
         try {
-            credentials = new ProfileCredentialsProvider().getCredentials();
+            s3 = new AmazonS3Client(new ProfileCredentialsProvider().getCredentials());
         } catch (Exception exception) {
-            throw new AmazonClientException(
-                "Cannot load the credentials from the credential profiles file. "
-                + "Please make sure that your credentials file is at the correct "
-                + "location (~/.aws/credentials), and is in valid format.",
-                exception
-            );
+            s3 = new AmazonS3Client();
         }
-
-        AmazonS3 s3 = new AmazonS3Client(credentials);
-        // Region usWest2 = Region.getRegion(Regions.US_WEST_2);
-        // s3.setRegion(usWest2);
 
         s3.getObject(
             new GetObjectRequest(dataUri.getBucket(), dataUri.getKey()),
