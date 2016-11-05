@@ -1,9 +1,13 @@
 # aws-lambda-fop
 AWS Lambda function for generating PDFs from XML/XSLT using FOP
 
-## Running from the CLI
+## Running via Gradle
+
+[Install Gradle](https://gradle.org/gradle-download/).
+
+
 
 ```
-javac -cp 'lib/*:.' PDFGenerator.java
-java -cp 'lib/*:.' PDFGenerator samples/data.xml samples/style.xslt samples/output.pdf
+gradle installDist
+./build/install/aws-lambda-fop/bin/aws-lambda-fop s3://lightster-test/lambda-fop/data.xml s3://lightster-test/lambda-fop/style.xslt s3://lightster-test/lambda-fop/output.pdf
 ```

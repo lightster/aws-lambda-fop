@@ -3,12 +3,6 @@ apply plugin: 'application'
 
 mainClassName = "lightster.aws.lambda.fop.PDFGenerator"
 
-run {
-    if ( project.hasProperty("args") ) {
-        args(args.split(' '))
-    }
-}
-
 repositories {
     mavenCentral()
 }
